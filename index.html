@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+
+        ul {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            margin: 0 auto;
+            padding: 0;
+            max-width: 800px;
+            column-gap: 12px;
+            row-gap: 12px;
+
+        }
+
+        @media (max-width: 600px) {
+            ul {
+                display: grid;
+                grid-template-columns: 1fr;
+                margin: 0 auto;
+                padding: 0;
+                column-gap: 20px;
+                row-gap: 20px;
+
+            }
+        }
+
+        li {
+            list-style: none;
+        }
+
+        img {
+            width: 100%;
+            display: block;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .tool-bar {
+            margin: 70px auto;
+            padding: 70px;
+            border-top: 1px solid #dadada;
+            width: auto;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: transparent 1px solid;
+            border-radius: 4px;
+            background-color: #00aaee;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+
+<ul>
+
+</ul>
+<div class="tool-bar">
+    <button class="generate-button">Generate</button>
+</div>
+</div>
+
+<template id="image-template">
+    <li>
+        <img src="" alt="">
+    </li>
+</template>
+
+
+<script>
+
+
+    class Application {
+        #currentPage = 1;
+        #imagesPerPage = 6;
+        #imageList;
+        #imageTemplate;
+        #generateButton;
+        get #url() {
+            return `https://picsum.photos/v2/list?page=${this.#currentPage}&limit=${this.#imagesPerPage}`;
+        }
+
+        constructor() {
+
+            this.#imageList = document.querySelector('ul');
+            this.#imageTemplate = document.querySelector('#image-template');
+            this.#generateButton = document.querySelector('.generate-button');
+
+            this.#generateButton.addEventListener('click', this.getImages.bind(this))
+
+            this.getImages();
+        }
+
+        async getImages() {
+            try {
+                const imagesJson = await fetch(this.#url)
+                const images = await imagesJson.json();
+                const docFrag = document.createDocumentFragment();
+                console.log(images)
+
+
+                images.forEach(image => {
+                    const finalUrlArray = image.download_url.split('/');
+                    finalUrlArray[5] = '300'
+                    finalUrlArray[6] = '300'
+                    console.log(finalUrlArray)
+                    const clone = this.#imageTemplate.content.cloneNode(true)
+                    const $img = clone.querySelector('img');
+                    $img.setAttribute('src', finalUrlArray.join('/'))
+                    $img.setAttribute('alt', ``)
+                    docFrag.append(clone);
+                });
+
+                this.#imageList.replaceChildren(...docFrag.childNodes)
+                this.#currentPage++
+            } catch (err) {
+                console.error(`ERROR`, err)
+            }
+        }
+    }
+
+    const app = new Application();
+
+</script>
+
+</body>
+</html>
